@@ -7,6 +7,12 @@ import (
     "os"
 )
 
+type Arg struct {
+    Type reflect.Type
+    Name string
+    Default interface{}
+}
+
 
 func extractMethod(Ptr interface{}) []string {
     ref := reflect.TypeOf(Ptr).Elem()
@@ -33,41 +39,47 @@ func isBasicKind(k reflect.Kind) bool {
     return false
 }
 
-func extractField(Ptr interface{}) map[string]reflect.Type{
+func extractField(Ptr interface{}) map[string]Arg{
     ref := reflect.TypeOf(Ptr).Elem()
-    fieldName2Type := make(map[string]reflect.Type)
+    fieldName2Type := make(map[string]Arg)
     for i:=0; i < ref.NumField(); i++ {
         field := ref.Field(i)
         if isBasicKind(field.Type.Kind()) {
-            fieldName2Type[field.Name] = field.Type
+            arg := Arg{}
+            arg.Type = field.Type
+            if def, ok := field.Tag.Lookup("default"); ok {
+                arg.Name = def
+            } else {
+                arg.Name = strings.ToLower(field.Name)
+            }
+            fieldName2Type[field.Name] = arg
         }
     }
     return fieldName2Type
 }
 
-func field2Flag(fields map[string]reflect.Type) map[string]interface{} {
+func setupFieldArgs(fields map[string]Arg) map[string]interface{} {
     args := make(map[string]interface{})
-    for field, Type := range fields {
-        argName := strings.ToLower(field)
-        switch Type.Kind() {
+    for field, arg := range fields {
+        switch arg.Type.Kind() {
         case reflect.String:
-            var arg string
-            flag.StringVar(&arg, argName, "", field)
-            args[field] = &arg
+            var argvar string
+            flag.StringVar(&argvar, arg.Name, "", field)
+            args[field] = &argvar
         case reflect.Int:
-            var arg int
-            flag.IntVar(&arg, argName, 0, field)
-            args[field] = &arg
+            var argvar int
+            flag.IntVar(&argvar, arg.Name, 0, field)
+            args[field] = &argvar
         case reflect.Bool:
-            var arg bool
-            flag.BoolVar(&arg, argName, true, field)
-            args[field]= &arg
+            var argvar bool
+            flag.BoolVar(&argvar, arg.Name, true, field)
+            args[field]= &argvar
         }
     }
     return args
 }
 
-func setupFieldArg(Ptr interface{}, Flag map[string]interface{}) {
+func setField2Struct(Ptr interface{}, Flag map[string]interface{}) {
     ref := reflect.ValueOf(Ptr)
     for field, valuePtr := range Flag {
         ref.Elem().FieldByName(field).Set(reflect.ValueOf(valuePtr).Elem())
@@ -84,10 +96,10 @@ func setupMethodArg(Ptr interface{}) {
 
 func Run(Ptr interface{}) {
     fields := extractField(Ptr)
-    args := field2Flag(fields)
+    args := setupFieldArgs(fields)
     setupMethodArg(Ptr)
     flag.Parse()
-    setupFieldArg(Ptr, args)
+    setField2Struct(Ptr, args)
     ref := reflect.ValueOf(Ptr).Elem()
     M, ok := ref.Type().MethodByName(method)
     if !ok {

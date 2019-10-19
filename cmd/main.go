@@ -7,7 +7,7 @@ import (
 
 
 type A struct {
-    Name string
+    Name string `default:"a"`
 }
 
 func (a A) Hello() {
