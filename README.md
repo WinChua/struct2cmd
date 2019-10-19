@@ -43,3 +43,9 @@ Usage of ./hmm:
 By default, the field of your struct will be the flag of the cmdline.
 
 Additionally, an option called "method" will be added which could be used to specify the method name to be call.
+
+
+## Stargazers over time
+
+[![Stargazers over time](https://starchart.cc/WinChua/struct2cmd.svg)](https://starchart.cc/WinChua/struct2cmd)
+
