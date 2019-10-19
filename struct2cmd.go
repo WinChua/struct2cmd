@@ -13,6 +13,9 @@ func extractMethod(Ptr interface{}) []string {
     methodNames := make([]string, 0)
     for i:=0; i < ref.NumMethod(); i++ {
         method := ref.Method(i)
+        if method.Type.NumIn() > 1 {
+            continue
+        }
         methodNames = append(methodNames, method.Name)
     }
     return methodNames
@@ -64,7 +67,7 @@ func field2Flag(fields map[string]reflect.Type) map[string]interface{} {
     return args
 }
 
-func setFlag2Field(Ptr interface{}, Flag map[string]interface{}) {
+func setupFieldArg(Ptr interface{}, Flag map[string]interface{}) {
     ref := reflect.ValueOf(Ptr)
     for field, valuePtr := range Flag {
         ref.Elem().FieldByName(field).Set(reflect.ValueOf(valuePtr).Elem())
@@ -73,7 +76,7 @@ func setFlag2Field(Ptr interface{}, Flag map[string]interface{}) {
 
 var method string
 
-func setupMethod(Ptr interface{}) {
+func setupMethodArg(Ptr interface{}) {
     methods := extractMethod(Ptr)
     usage := "method should in [" + strings.Join(methods, ",") + "]"
     flag.StringVar(&method, "method", "", usage)
@@ -82,9 +85,9 @@ func setupMethod(Ptr interface{}) {
 func Run(Ptr interface{}) {
     fields := extractField(Ptr)
     args := field2Flag(fields)
-    setupMethod(Ptr)
+    setupMethodArg(Ptr)
     flag.Parse()
-    setFlag2Field(Ptr, args)
+    setupFieldArg(Ptr, args)
     ref := reflect.ValueOf(Ptr).Elem()
     M, ok := ref.Type().MethodByName(method)
     if !ok {

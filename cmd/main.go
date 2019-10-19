@@ -14,6 +14,10 @@ func (a A) Hello() {
     fmt.Println(a.Name)
 }
 
+func (a A) World(answer int) {
+    fmt.Println(answer)
+}
+
 func main() {
     a := A{}
     struct2cmd.Run(&a)
