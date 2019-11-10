@@ -32,7 +32,9 @@ func isBasicKind(k reflect.Kind) bool {
 		return true
 	case reflect.String:
 		return true
-	case reflect.Int:
+	case reflect.Int, reflect.Int64:
+		return true
+	case reflect.Float64:
 		return true
 	}
 	return false
@@ -72,6 +74,14 @@ func setupFieldArgs(fields map[string]Arg) map[string]interface{} {
 		case reflect.Bool:
 			var argvar bool
 			flag.BoolVar(&argvar, arg.Name, true, field)
+			args[field] = &argvar
+		case reflect.Int64:
+			var argvar int64
+			flag.Int64Var(&argvar, arg.Name, 0, field)
+			args[field] = &argvar
+		case reflect.Float64:
+			var argvar float64
+			flag.Float64Var(&argvar, arg.Name, 0.0, field)
 			args[field] = &argvar
 		}
 	}
