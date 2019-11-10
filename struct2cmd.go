@@ -43,7 +43,7 @@ func extractField(Ptr interface{}) map[string]Arg {
 	fieldName2Type := make(map[string]Arg)
 	for i := 0; i < ref.NumField(); i++ {
 		field := ref.Field(i)
-		if isBasicKind(field.Type.Kind()) {
+		if isBasicKind(field.Type.Kind()) && (field.Name[0] >= 'A' && field.Name[0] <= 'Z') {
 			arg := Arg{}
 			arg.Type = field.Type
 			if def, ok := field.Tag.Lookup("default"); ok {
