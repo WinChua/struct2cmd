@@ -21,6 +21,9 @@ func extractMethod(Ptr interface{}) []string {
 		if method.Type.NumIn() > 1 {
 			continue
 		}
+		if method.Name == "Setup" || method.Name == "Cleanup" {
+			continue
+		}
 		methodNames = append(methodNames, method.Name)
 	}
 	return methodNames
@@ -115,5 +118,13 @@ func Run(Ptr interface{}) {
 		flag.Usage()
 		os.Exit(1)
 	}
+	Setup, ok := ref.Type().MethodByName("Setup")
+	if ok {
+		Setup.Func.Call([]reflect.Value{ref})
+	}
 	M.Func.Call([]reflect.Value{ref})
+	Cleanup, ok := ref.Type().MethodByName("Cleanup")
+	if ok {
+		Cleanup.Func.Call([]reflect.Value{ref})
+	}
 }
